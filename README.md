@@ -14,5 +14,5 @@ Lin, L., Liu, D., Luo, C., Xie, L., 2019. Double fronts in the Yellow Sea in sum
 temperature data of multi-scale ultra-high resolution analysis. Continental Shelf Research 175, 76–86. 
 https://doi.org/10.1016/j.csr.2019.02.004
 
-Ben Galuardi - boaR - R
+Ben Galuardi - boaR - R 
 https://rdrr.io/github/galuardi/boaR/man/boaR-package.html
