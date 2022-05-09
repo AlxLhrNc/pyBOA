@@ -1,16 +1,10 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed May  4 08:37:25 2022
-
-@author: alhe551
-"""
 from numpy import nanmax, nanmin, zeros_like
 
 def peak_3(data_nc):
     '''
     Detection of extrema in 3*3 windows
     Input:
-        data_nc:   .nc file
+        data_nc:   .nc dataset
     Output:
         peak3:     data sheet with data_nc dimensions
     '''
