@@ -3,6 +3,8 @@
 Created on Wed May  4 12:35:19 2022
 
 @author: alhe551
+
+To execute this file, the files boa_peak3.py, boa_peak5.py and boa_m3in5.py are necessary.
 """
 
 #Environment setting
@@ -31,17 +33,13 @@ from boa_peak5 import peak_5
 #%% Extraction nc
 print('\nExtracting nc file ...')
 
-nc_file = 'CHL_L3_REP_OBSERVATIONS_4km_2022_04_27.nc'
-nc = xr.open_dataset('CHL_L3_REP_OBSERVATIONS_4km_2022_04_27.nc').load()
-# mapping "Equirectangular"
-
-# REMOVE LATER
-#nc = nc.sel(time = slice('2012-01-01', '2012-01-03'))
+nc_file = 'CHL_L3_REP_4km.nc' 
+nc = xr.open_dataset(nc_file).load()
 
 # Isolating the log(CHL)
 nc = np.log(nc)
 
-#%% detection
+#%% Detection
 print('\nBeginning detection ...')
 
 # RMSE definition
@@ -67,8 +65,8 @@ for day in tqdm(nc.time.values):
     print(f' RMSE = {rmse}')
 
     # Sobel kernels
-    sobel_vrt = sobel(res_fltrd,0) # Sobel along the latitude?
-    sobel_hzt = sobel(res_fltrd,1) # Sobel along the longitude?
+    sobel_vrt = sobel(res_fltrd,0) # Sobel along the latitude
+    sobel_hzt = sobel(res_fltrd,1) # Sobel along the longitude
     sobel_grd = np.sqrt(sobel_hzt**2 + sobel_vrt**2)
 
     # Matching DataArray
@@ -95,7 +93,7 @@ nc['peak5'] = (['time', 'lat', 'lon'], nc_peak5.data)
 nc['peak3'] = (['time', 'lat', 'lon'], nc_peak3.data)
 nc['sobel'] = (['time', 'lat', 'lon'], nc_sobel.data)
 
-nc.to_netcdf('CHL_L3_REP_4km_2022_04_27_DETECTION.nc','w')
+nc.to_netcdf('CHL_L3_REP_4km_DETECTION.nc','w')
 
 #%% End
 print('End.','\a')
