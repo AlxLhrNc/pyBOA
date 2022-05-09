@@ -1,4 +1,4 @@
-from numpy import nanmax, nanmin, zeros_like
+from numpy import nanmax, nanmin, zeros_like, shape
 
 def peak_3(data_nc):
     '''
