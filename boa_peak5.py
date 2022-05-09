@@ -1,11 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed May  4 08:37:25 2022
-
-@author: alhe551
-"""
-
-from numpy import nanmax, nanmin, zeros_like
+from numpy import nanmax, nanmin, zeros_like, shape
 
 def peak_5(data_nc):
     '''
