@@ -16,6 +16,7 @@ import xarray as xr
 from math import sqrt
 from scipy.ndimage import sobel
 from tqdm import tqdm
+from time import sleep
 
 print('Importing packages ...')
 PATH_ROOT = os.path.dirname(os.path.realpath(__file__))
@@ -50,6 +51,7 @@ print(f'Current target of the RMSE: {rmse_target}.')
 for day in tqdm(nc.time.values):
     rmse = 1
     CHLa = np.array(nc.CHL.sel(time=day))
+    print('') #aesthetic with tqdm if intermediary RMSE
     while rmse > rmse_target:
 
         res_peak5 = peak_5(CHLa)  # 5*5 window
@@ -58,11 +60,11 @@ for day in tqdm(nc.time.values):
 
         delta_nc = np.subtract(res_fltrd ,CHLa) # differences projected vs measures
         rmse = sqrt(np.nansum(delta_nc**2)/np.nansum(delta_nc/delta_nc)) # RMSE
-        #print(f' RMSE = {rmse}') # print intermediary RMSE, uncomment to see
+        print(f' RMSE = {rmse}') # print intermediary RMSE, uncomment to see
         CHLa = np.copy(res_fltrd) # Reafecting 
         #rmse = 0 # Security for one run only
-
-    print(f'\n RMSE = {rmse}') # print final RMSE
+    sleep(.2) #aesthetic with tqdm if intermediary RMSE
+    #print(f'\n RMSE = {rmse}') # print final RMSE, uncomment to see
 
     # Sobel kernels
     sobel_vrt = sobel(res_fltrd,0) # Sobel along the latitude
