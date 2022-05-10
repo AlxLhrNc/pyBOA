@@ -1,14 +1,15 @@
-from numpy import nanmax, nanmin, zeros_like, shape
+from numpy import nanmax, nanmin, zeros_like, shape, argwhere, array_equal, isnan
 
 def peak_5(data_nc):
     '''
     Detection of extrema in 5*5 windows
     Input:
-        data_nc:   .nc file
+        data_nc:   .nc dataset
     Output:
         peak5:     data sheet with data_nc dimensions
+    Issues may occure if dimmensions order is not [lat, lon, other] or [lon, lat, other]. Hence, 2D arrays are prefered, like [lat, lon].
     '''
-    nc_shape = data_nc.shape
+    nc_shape = shape(data_nc)
     range_lat = range(2,nc_shape[0]-2,1)
     range_lon = range(2,nc_shape[1]-2,1)
     peak5 = zeros_like(data_nc)
@@ -18,28 +19,16 @@ def peak_5(data_nc):
             # window
             window = data_nc[i-2:i+3,j-2:j+3]
 
-            #center
-            center = window[2,2]
+            # nan filtering
+            if isnan(window.all()):
+                pass
 
-            # W-E
-            slice_w_e = window[2,:]
-            # N-S
-            slice_n_s = window[:,2]
-            # NW-SE
-            slice_nw_se = [window[0,4],window[1,3],window[2,2],window[3,1],window[4,0]]
-            # NE-SW
-            slice_ne_sw = [window[0,0],window[1,1],window[2,2],window[3,3],window[4,4]]
+            # extracting min and max position in the array
+            else:
+                peak_min = array_equal([[2,2]], argwhere(window == nanmin(window)))
+                peak_max = array_equal([[2,2]], argwhere(window == nanmax(window)))
 
-            all_min = [nanmin(slice_w_e), nanmin(slice_n_s),
-                       nanmin(slice_nw_se), nanmin(slice_ne_sw)]
-            all_max = [nanmax(slice_w_e), nanmax(slice_n_s),
-                       nanmax(slice_nw_se), nanmax(slice_ne_sw)]
-            
-            peak_min = all(peak == center for peak in all_min)
-            peak_max = all(peak == center for peak in all_max)
-
-            if peak_min | peak_max:
-                peak5[i,j] = 1
-
+                if peak_min | peak_max:
+                    peak5[i,j] = 1
 
     return peak5
