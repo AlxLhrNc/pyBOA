@@ -1,4 +1,4 @@
-from numpy import nanmax, nanmin, zeros_like, shape
+from numpy import nanmax, nanmin, zeros_like, shape, argwhere, array_equal, isnan
 
 def peak_3(data_nc):
     '''
@@ -8,7 +8,7 @@ def peak_3(data_nc):
     Output:
         peak3:     data sheet with data_nc dimensions
     '''
-    nc_shape = data_nc.shape
+    nc_shape = shape(data_nc)
     range_lat = range(2,nc_shape[0]-2,1)
     range_lon = range(2,nc_shape[1]-2,1)
     peak3 = zeros_like(data_nc)
@@ -18,13 +18,16 @@ def peak_3(data_nc):
             # window
             window = data_nc[i-1:i+2,j-1:j+2]
 
-            #center
-            center = window[1,1]
+            # nan filtering
+            if isnan(window.all()):
+                pass
 
-            peak_min = center == nanmin(window)
-            peak_max = center == nanmax(window)
+            # extracting min and max position in the array
+            else:
+                peak_min = array_equal([[1,1]], argwhere(window == nanmin(window)))
+                peak_max = array_equal([[1,1]], argwhere(window == nanmax(window)))
 
-            if peak_min | peak_max:
-                peak3[i,j] = 1
+                if peak_min | peak_max:
+                    peak3[i,j] = 1
 
     return peak3
