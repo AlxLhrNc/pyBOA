@@ -7,6 +7,7 @@ def peak_3(data_nc):
         data_nc:   .nc dataset
     Output:
         peak3:     data sheet with data_nc dimensions
+    Issues may occure if dimmensions order is not [lat, lon, other] or [lon, lat, other]. Hence, 2D arrays are prefered, like [lat, lon].
     '''
     nc_shape = shape(data_nc)
     range_lat = range(2,nc_shape[0]-2,1)
