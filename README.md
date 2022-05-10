@@ -1,6 +1,6 @@
 # boa_front_detection
 
-Detection algorithm for oceanographic data (Specifically CHL)
+Detection algorithm for oceanographic data (specifically CHL but can be used for others)
 
 Original pseudo-code:
 Belkin, I.M., O’Reilly, J.E., 2009. An algorithm for oceanic front detection in chlorophyll and SST satellite imagery.
