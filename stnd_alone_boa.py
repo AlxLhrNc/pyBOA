@@ -4,7 +4,7 @@ Created on Wed May  4 12:35:19 2022
 
 @author: alhe551
 
-To execute this file, the files boa_peak3.py, boa_peak5.py and boa_m3in5.py are necessary.
+To execute this file, the files boa_peak3.py, boa_peak5.py and boa_m3in5.py are necessary. A sample file is available.
 """
 
 #Environment setting
@@ -33,7 +33,7 @@ from boa_peak5 import peak_5
 #%% Extraction nc
 print('\nExtracting nc file ...')
 
-nc_file = 'CHL_L3_REP_4km.nc' 
+nc_file = 'CHL_4km_sample.nc' 
 nc = xr.open_dataset(nc_file).load()
 
 # Isolating the log(CHL)
@@ -49,7 +49,7 @@ print(f'Current target of the RMSE: {rmse_target}.')
 # Detection loop
 for day in tqdm(nc.time.values):
     rmse = 1
-    CHLa = nc.CHL.sel(time=day)
+    CHLa = np.array(nc.CHL.sel(time=day))
     while rmse > rmse_target:
 
         res_peak5 = peak_5(CHLa)  # 5*5 window
@@ -58,11 +58,11 @@ for day in tqdm(nc.time.values):
 
         delta_nc = np.subtract(res_fltrd ,CHLa) # differences projected vs measures
         rmse = sqrt(np.nansum(delta_nc**2)/np.nansum(delta_nc/delta_nc)) # RMSE
-        
+        #print(f' RMSE = {rmse}') # print intermediary RMSE, uncomment to see
         CHLa = np.copy(res_fltrd) # Reafecting 
         #rmse = 0 # Security for one run only
 
-    print(f' RMSE = {rmse}')
+    print(f'\n RMSE = {rmse}') # print final RMSE
 
     # Sobel kernels
     sobel_vrt = sobel(res_fltrd,0) # Sobel along the latitude
@@ -93,7 +93,8 @@ nc['peak5'] = (['time', 'lat', 'lon'], nc_peak5.data)
 nc['peak3'] = (['time', 'lat', 'lon'], nc_peak3.data)
 nc['sobel'] = (['time', 'lat', 'lon'], nc_sobel.data)
 
-nc.to_netcdf('CHL_L3_REP_4km_DETECTION.nc','w')
+save_file = nc_file.replace('.nc','_DETECTION.nc')
+nc.to_netcdf(save_file,'w')
 
 #%% End
 print('End.','\a')
