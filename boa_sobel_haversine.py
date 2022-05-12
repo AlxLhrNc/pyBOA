@@ -21,7 +21,7 @@ def sobel_haversine(data_nc, lat_key = 'lat'):
     
     Gx = array([[1.0, 0.0, -1.0], [2.0, 0.0, -2.0], [1.0, 0.0, -1.0]])
     Gy = array([[1.0, 2.0, 1.0], [0.0, 0.0, 0.0], [-1.0, -2.0, -1.0]])
-    for i in tqdm(range_lat):
+    for i in range_lat:
         for j in range_lon:
             hvrsn = cos(radians(data_nc[lat_key][i])).values # haversine cos(lat) part
             gx = ((Gx*hvrsn)*data_nc[0,i-1:i+2, j-1:j+2]).sum()  # x direction
