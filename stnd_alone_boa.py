@@ -31,6 +31,12 @@ print('\nLoading custom functions ...')
 from boa_mf3in5 import mf3in5
 from boa_peak3 import peak_3
 from boa_peak5 import peak_5
+from boa_sobel_haversine import sobel_haversine
+
+#or
+
+from pyBOA import peak_5, peak_3, mf3in5, sobel_haversine
+
 #%% Extraction nc
 print('\nExtracting nc file ...')
 
@@ -50,7 +56,7 @@ print(f'Current target of the RMSE: {rmse_target}.')
 # Detection loop
 for day in tqdm(nc.time.values):
     rmse = 1
-    CHLa = np.array(nc.CHL.sel(time=day))
+    CHLa = nc.sel(time=day)
     print('') #aesthetic with tqdm if intermediary RMSE
     while rmse > rmse_target:
 
@@ -66,16 +72,8 @@ for day in tqdm(nc.time.values):
     sleep(.2) #aesthetic with tqdm if intermediary RMSE
     #print(f'\n RMSE = {rmse}') # print final RMSE, uncomment to see
 
-    # Sobel kernels
-    sobel_vrt = sobel(res_fltrd,0) # Sobel along the latitude
-    sobel_hzt = sobel(res_fltrd,1) # Sobel along the longitude
-    sobel_grd = np.sqrt(sobel_hzt**2 + sobel_vrt**2)
-
-    # Matching DataArray
-    res_fltrd = xr.DataArray(res_fltrd, dims = ['lat', 'lon']).expand_dims({'time':1})
-    res_peak5 = xr.DataArray(res_peak5, dims = ['lat', 'lon']).expand_dims({'time':1})
-    res_peak3 = xr.DataArray(res_peak3, dims = ['lat', 'lon']).expand_dims({'time':1})
-    sobel_grd = xr.DataArray(sobel_grd, dims = ['lat', 'lon']).expand_dims({'time':1})
+    # Custom sobel
+    res_sobel = sobel_haversine2(res_fltrd)
 
     # Saving
     if day == nc.time.values.min():
