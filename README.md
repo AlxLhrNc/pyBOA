@@ -18,3 +18,7 @@ https://doi.org/10.1016/j.csr.2019.02.004
 
 Ben Galuardi - boaR - R 
 https://rdrr.io/github/galuardi/boaR/man/boaR-package.html
+
+
+What to get:
+The sample netcdf file, the stnd_alone file, and either all boa_.py files, or just the pyBOA.py as they should have the same content.
