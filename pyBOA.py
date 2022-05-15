@@ -33,14 +33,14 @@ def peak_5(data_nc):
     coordinates = data_nc.coords
     data_nc = asarray(data_nc)
     nc_shape = shape(data_nc)
-    range_lat = range(2,nc_shape[1]-2,1)
-    range_lon = range(2,nc_shape[2]-2,1)
+    range_lat = range(2,nc_shape[-2]-2,1)
+    range_lon = range(2,nc_shape[-1]-2,1)
     peak5 = zeros_like(data_nc)
 
     for i in range_lat:
         for j in range_lon:
             # window
-            window = data_nc[0,i-2:i+3,j-2:j+3]
+            window = data_nc[i-2:i+3,j-2:j+3]
 
             # nan filtering
             if isnan(window.all()):
@@ -52,7 +52,7 @@ def peak_5(data_nc):
                 peak_max = array_equal([[2,2]], argwhere(window == nanmax(window)))
 
                 if peak_min | peak_max:
-                    peak5[0,i,j] = 1
+                    peak5[i,j] = 1
     peak5 = DataArray(peak5, coords = coordinates, dims = dimensions)
 
     return peak5
@@ -73,14 +73,14 @@ def peak_3(data_nc):
     coordinates = data_nc.coords
     data_nc = asarray(data_nc)
     nc_shape = shape(data_nc)
-    range_lat = range(2,nc_shape[1]-2,1)
-    range_lon = range(2,nc_shape[2]-2,1)
+    range_lat = range(2,nc_shape[-2]-2,1)
+    range_lon = range(2,nc_shape[-1]-2,1)
     peak3 = zeros_like(data_nc)
     
     for i in range_lat:
         for j in range_lon:
             # window
-            window = data_nc[0,i-2:i+3,j-2:j+3]
+            window = data_nc[i-2:i+3,j-2:j+3]
 
             # nan filtering
             if isnan(window.all()):
@@ -92,7 +92,7 @@ def peak_3(data_nc):
                 peak_max = array_equal([[1,1]], argwhere(window == nanmax(window)))
 
                 if peak_min | peak_max:
-                    peak3[0,i,j] = 1
+                    peak3[i,j] = 1
     peak3 = DataArray(peak3, coords = coordinates, dims = dimensions)
 
     return peak3
@@ -112,17 +112,17 @@ def mf3in5(data_nc, peak5, peak3):
              You may edit the idexes to match your own dims order.
     '''
     nc_shape = data_nc.shape
-    range_lat = range(2,nc_shape[1]-2,1)
-    range_lon = range(2,nc_shape[2]-2,1)
+    range_lat = range(2,nc_shape[-2]-2,1)
+    range_lon = range(2,nc_shape[-1]-2,1)
     filtered_nc = data_nc.copy()
 
     for i in range_lat:
         for j in range_lon:
             # window
-            window = filtered_nc[0,i-1:i+2,j-1:j+2]
+            window = filtered_nc[i-1:i+2,j-1:j+2]
             
-            if peak3[0,i,j] == 1 and peak5[0,i,j] == 0:
-                filtered_nc[0,i,j] = nanmedian(window)
+            if peak3[i,j] == 1 and peak5[i,j] == 0:
+                filtered_nc[i,j] = nanmedian(window)
     
     filtered_nc = DataArray(filtered_nc, dims = data_nc.dims)
     
@@ -142,8 +142,8 @@ def sobel_haversine(data_nc):
 
     tmp, hvrsn = meshgrid(data_nc.lon,cos(data_nc.lat*pi/180)) # extracting cos(lat) as a matrix
 
-    sobel_hzt = sobel(data_nc,1) # Sobel along the latitude
-    sobel_vrt = hvrsn*sobel(data_nc,2) # Sobel along the longitude
+    sobel_hzt = sobel(data_nc,0) # Sobel along the latitude
+    sobel_vrt = hvrsn*sobel(data_nc,1) # Sobel along the longitude
 
     sobel_grd = sqrt(sobel_hzt**2 + sobel_vrt**2) #gradient calculation
     sobel_grd = DataArray(sobel_grd, coords = coordinates, dims = dimensions)
