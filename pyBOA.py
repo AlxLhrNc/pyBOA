@@ -15,7 +15,7 @@ from math import pi
 from scipy.ndimage import sobel
 
 #%% flag_n
-def flag_n(da, n):
+def flag_n(data_nc, n):
     '''
     Detection of extrema in n*n windows
     Input:
@@ -28,12 +28,12 @@ def flag_n(da, n):
     '''
     
     window_size = {name: n for name in ['lat', 'lon']}
-    roll = da.rolling(window_size, center=True)
+    window = data_nc.rolling(window_size, center=True)
 
-    peak_min = roll.min()
-    peak_max = roll.max()
+    peak_min = window.min()
+    peak_max = window.max()
 
-    flag = (peak_min == da) | (peak_max == da)
+    flag = (peak_min == data_nc) | (peak_max == data_nc)
 
     return flag
 
