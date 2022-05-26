@@ -7,128 +7,59 @@ Created on Fri May 13 11:31:52 2022
 
 # Packages
 
-
-
-from numpy import nanmax, nanmin, isnan, nanmedian, cos, sqrt
-from numpy import zeros_like, shape, argwhere, array_equal, asarray, array, meshgrid
-
-from xarray import DataArray
+from numpy import isnan, nanmedian, cos, sqrt, nanmean, nansum, nan as npnan
+from numpy import meshgrid, histogram, ravel
+from numpy import where as npwhere
+from xarray import DataArray, where as xrwhere
 from math import pi
 from scipy.ndimage import sobel
 
-
-#%% peak_5
-def peak_5(data_nc):
+#%% flag_n
+def flag_n(da, n):
     '''
-    Detection of extrema in 5*5 windows
+    Detection of extrema in n*n windows
     Input:
-        data_nc:   .nc dataset
+        data_nc:   .nc dataset/dataArray
     Output:
         peak5:     data sheet with data_nc dimensions
     
     WARNING: This function was built for CMEMS dataset with dims [time, lat, lon]. 
-             You may edit the idexes to match your own dims order.
+             You may edit the names to match your own dims.
     '''
-    dimensions = data_nc.dims
-    coordinates = data_nc.coords
-    data_nc = asarray(data_nc)
-    nc_shape = shape(data_nc)
-    range_lat = range(2,nc_shape[-2]-2,1)
-    range_lon = range(2,nc_shape[-1]-2,1)
-    peak5 = zeros_like(data_nc)
-
-    for i in range_lat:
-        for j in range_lon:
-            # window
-            window = data_nc[i-2:i+3,j-2:j+3]
-
-            # nan filtering
-            if isnan(window.all()):
-                pass
-
-            # extracting min and max position in the array
-            else:
-                peak_min = array_equal([[2,2]], argwhere(window == nanmin(window)))
-                peak_max = array_equal([[2,2]], argwhere(window == nanmax(window)))
-
-                if peak_min | peak_max:
-                    peak5[i,j] = 1
-    peak5 = DataArray(peak5, coords = coordinates, dims = dimensions)
-
-    return peak5
-
-#%% peak_3
-def peak_3(data_nc):
-    '''
-    Detection of extrema in 3*3 windows
-    Input:
-        data_nc:   .nc dataset
-    Output:
-        peak3:     data sheet with data_nc dimensions
-   
-    WARNING: This function was built for CMEMS dataset with dims [time, lat, lon]. 
-             You may edit the idexes to match your own dims order.
-    '''
-    dimensions = data_nc.dims
-    coordinates = data_nc.coords
-    data_nc = asarray(data_nc)
-    nc_shape = shape(data_nc)
-    range_lat = range(2,nc_shape[-2]-2,1)
-    range_lon = range(2,nc_shape[-1]-2,1)
-    peak3 = zeros_like(data_nc)
     
-    for i in range_lat:
-        for j in range_lon:
-            # window
-            window = data_nc[i-2:i+3,j-2:j+3]
+    window_size = {name: n for name in ['lat', 'lon']}
+    roll = da.rolling(window_size, center=True)
 
-            # nan filtering
-            if isnan(window.all()):
-                pass
+    peak_min = roll.min()
+    peak_max = roll.max()
 
-            # extracting min and max position in the array
-            else:
-                peak_min = array_equal([[1,1]], argwhere(window == nanmin(window)))
-                peak_max = array_equal([[1,1]], argwhere(window == nanmax(window)))
+    flag = (peak_min == da) | (peak_max == da)
 
-                if peak_min | peak_max:
-                    peak3[i,j] = 1
-    peak3 = DataArray(peak3, coords = coordinates, dims = dimensions)
-
-    return peak3
+    return flag
 
 #%% mf3in5
 def mf3in5(data_nc, peak5, peak3):
     '''
     Contextual median filtering
     Input:
-        data_nc:     .nc file
-        peak5:       output from boa_peak5
-        peak3:       output from boa_peak3
+        data_nc:     .nc dataset/dataArray
     Output:
         filtered_nc: median filtered data_nc
-    WARNING: The input order of peak5 and peak3 matters. Reversing it leads to wrong results
-             This function was built for CMEMS dataset with dims [time, lat, lon]. 
-             You may edit the idexes to match your own dims order.
+    WARNING: As per BOA design, works with 2 implementation of flag_n with n = 5 and n = 5
     '''
-    nc_shape = data_nc.shape
-    range_lat = range(2,nc_shape[-2]-2,1)
-    range_lon = range(2,nc_shape[-1]-2,1)
+    peak_5 = flag_n(data_nc, 5)
+    peak_3 = flag_n(data_nc, 3)
+    to_filter = peak_3 * ~peak_5
     filtered_nc = data_nc.copy()
+    idx = npwhere(to_filter)
 
-    for i in range_lat:
-        for j in range_lon:
-            # window
-            window = filtered_nc[i-1:i+2,j-1:j+2]
-            
-            if peak3[i,j] == 1 and peak5[i,j] == 0:
-                filtered_nc[i,j] = nanmedian(window)
-    
-    filtered_nc = DataArray(filtered_nc, dims = data_nc.dims)
-    
+    for it, ix, iy in zip(*idx):
+        window = data_nc[it, ix-1:ix+2, iy-1:iy+2]
+        filtered_nc[it, ix, iy] = nanmedian(window)
+
     return filtered_nc
 
-#%% sobel_haversine
+#%% sobel_haversine (faster)
 def sobel_haversine(data_nc):
     '''
     Sobel filter adjusted using Haversine formula to deal with lon/lat to deal with distances change
@@ -142,9 +73,44 @@ def sobel_haversine(data_nc):
 
     tmp, hvrsn = meshgrid(data_nc.lon,cos(data_nc.lat*pi/180)) # extracting cos(lat) as a matrix
 
-    sobel_hzt = sobel(data_nc,0) # Sobel along the latitude
-    sobel_vrt = hvrsn*sobel(data_nc,1) # Sobel along the longitude
+    sobel_hzt, sobel_vrt = sobel(data_nc,1),sobel(data_nc,2) # Sobel along the longitude
 
-    sobel_grd = sqrt(sobel_hzt**2 + sobel_vrt**2) #gradient calculation
+    sobel_grd = hvrsn*sqrt(sobel_hzt**2 + sobel_vrt**2) #gradient calculation
     sobel_grd = DataArray(sobel_grd, coords = coordinates, dims = dimensions)
     return sobel_grd
+
+#%% otsu
+def otsu_thrshld(data_nc):
+    '''
+    Otsu automated thresholding (DOI: 10.1109/TSMC.1979.4310076)
+    Input:
+        data_nc:  .nc dataset/dataArray
+    Output:
+        thrshld_f:  final threshold
+        otsu_out:   binary dataArray with data_nc dimensions
+    '''
+    N = data_nc.shape[-2]*data_nc.shape[-1]
+    weight = 1.0/N
+    rvl = ravel(data_nc)[~isnan(ravel(data_nc))]
+    hist, bins = histogram(rvl, 256)
+    #loking to maximize nu with nu = var_between_class/var_total. OR minimize var_between_class
+    thrshld_f = -1
+    value_f = -1
+    for k in bins:
+        ind = int(npwhere(bins==k)[0])
+        Wb = nansum(hist[:ind]) * weight
+        Wf = nansum(hist[ind:]) * weight
+        
+        muB = nanmean(hist[:ind]) * weight
+        muF = nanmean(hist[ind:]) * weight
+
+        value = Wb * Wf * (muB - muF) ** 2
+        
+        if value > value_f:
+                thrshld_f = k
+                value_f = value
+    otsu_out = data_nc.copy()
+    otsu_out = xrwhere(otsu_out>thrshld_f,1,npnan)
+    otsu_out = xrwhere(isnan(data_nc),npnan,otsu_out)    
+
+    return round(thrshld_f,2), otsu_out
