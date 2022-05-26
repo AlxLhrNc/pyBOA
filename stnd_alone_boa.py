@@ -2,7 +2,7 @@
 """
 Created on Wed May  4 12:35:19 2022
 
-@author: alhe551
+@author: AlxndrLhr
 
 To execute this file, the files boa_*.py or pyBOA.py are necessary. A sample file is available.
 """
@@ -34,7 +34,7 @@ print('\nLoading custom functions ...')
 
 #or
 
-from pyBOA import peak_5, peak_3, mf3in5, sobel_haversine
+from pyBOA import flag_n, mf3in5, sobel_haversine
 
 #%% Extraction nc
 print('\nExtracting nc file ...')
@@ -59,9 +59,9 @@ for day in tqdm(nc.time.values):
     print('') #aesthetic with tqdm if intermediary RMSE
     while rmse > rmse_target:
 
-        res_peak5 = peak_5(CHLa)  # 5*5 window
-        res_peak3 = peak_3(CHLa) # 3*3 window
-        res_fltrd = mf3in5(CHLa, res_peak5, res_peak3) # contextual filter
+        res_peak5 = flag_n(CHLa, 5)  # 5*5 window if you need to save the data
+        res_peak3 = flag_n(CHLa, 3) # 3*3 window if you need to save the data
+        res_fltrd = mf3in5(CHLa) # contextual filter
 
         delta_nc = np.subtract(res_fltrd ,CHLa) # differences projected vs measures
         rmse = sqrt(np.nansum(delta_nc**2)/np.nansum(delta_nc/delta_nc)) # RMSE
