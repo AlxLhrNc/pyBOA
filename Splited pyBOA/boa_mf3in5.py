@@ -1,33 +1,23 @@
-from numpy import nanmedian
-from xarray import DataArray
-
+from numpy import nanmedian, where as npwhere
+from boa_flag_n import flag_n
 #%% mf3in5
 def mf3in5(data_nc, peak5, peak3):
     '''
     Contextual median filtering
     Input:
-        data_nc:     .nc file
-        peak5:       output from boa_peak5
-        peak3:       output from boa_peak3
+        data_nc:     .nc dataset/dataArray
     Output:
         filtered_nc: median filtered data_nc
-    WARNING: The input order of peak5 and peak3 matters. Reversing it leads to wrong results
-             This function was built for CMEMS dataset with dims [time, lat, lon]. 
-             You may edit the idexes to match your own dims order.
+    WARNING: As per BOA design, works with 2 implementation of flag_n with n = 5 and n = 5
     '''
-    nc_shape = data_nc.shape
-    range_lat = range(2,nc_shape[-2]-2,1)
-    range_lon = range(2,nc_shape[-1]-2,1)
+    peak_5 = flag_n(data_nc, 5)
+    peak_3 = flag_n(data_nc, 3)
+    to_filter = peak_3 * ~peak_5
     filtered_nc = data_nc.copy()
+    idx = npwhere(to_filter)
 
-    for i in range_lat:
-        for j in range_lon:
-            # window
-            window = filtered_nc[i-1:i+2,j-1:j+2]
-            
-            if peak3[i,j] == 1 and peak5[i,j] == 0:
-                filtered_nc[i,j] = nanmedian(window)
-    
-    filtered_nc = DataArray(filtered_nc, dims = data_nc.dims)
-    
+    for it, ix, iy in zip(*idx):
+        window = data_nc[it, ix-1:ix+2, iy-1:iy+2]
+        filtered_nc[it, ix, iy] = nanmedian(window)
+
     return filtered_nc
