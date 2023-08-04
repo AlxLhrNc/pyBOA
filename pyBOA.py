@@ -3,6 +3,8 @@
 Created on Fri May 13 11:31:52 2022
 
 @author: AlxLhrNC
+
+This works as an extension of xarray 
 """
 
 # Packages
@@ -157,7 +159,7 @@ def BOAarray(array, dims=None):
 
 # %% pyBOA class
 
-
+# This works as an extension of xarray 
 @xr.register_dataarray_accessor("pyBOA")
 @xr.register_dataset_accessor("pyBOA")
 class pyBOA:
