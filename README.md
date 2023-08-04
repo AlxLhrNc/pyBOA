@@ -18,3 +18,6 @@ Generalized contextual filter, rolling percentile selection, morphological thinn
 
 **What to get:**
 The sample netcdf file, the stnd_alone file, and pyBOA.py.
+
+**Important**
+This works as an extension of the xarray packages and was built under python 3.9
