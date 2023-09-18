@@ -1,9 +1,9 @@
-# boa_front_detection
+# pyBOA front detection
 
-Detection algorithm for oceanographic data (specifically chlorophyll but can be used for others)
+Detection algorithm for oceanographic data (specifically chlorophyl / temperature but can be used for others)
 
 **Original pseudo-code:**
-_Belkin, I.M., O’Reilly, J.E., 2009. An algorithm for oceanic front detection in chlorophyll and SST satellite imagery.
+Belkin, I.M., O’Reilly, J.E., 2009. An algorithm for oceanic front detection in chlorophyll and SST satellite imagery.
 Journal of Marine Systems, Special Issue on Observational Studies of Oceanic Fronts 78, 319–326_ (https://doi.org/10.1016/j.jmarsys.2008.11.018).
 
 
