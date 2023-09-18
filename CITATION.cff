@@ -1,9 +1,10 @@
 cff-version: 1.1.0
 message: "If you use this software, please cite it as below."
 authors:
-  - family-names: Lhériau-Nice
-    given-names: Alexandre
+  - family-names: "Lhériau-Nice"
+    given-names: "Alexandre"
     orcid: https://orcid.org/0000-0002-7221-1232
 title: "pyBOA: contextual front detection (publishing release)"
 version: v1.0.0
 date-released: 2023-07-11
+url: "https://github.com/AlxLhrNc/pyBOA/tree/v1.0.0"
