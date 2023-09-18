@@ -1,7 +1,7 @@
 {
-    "description": "<p>pyBOA at the time of first publishing.</p>", 
+    "description": "<p>pyBOA: contextual front detection (publishing release).</p>", 
     "license": "other-open", 
-    "title": "pyBOA (release for publishing)", 
+    "title": "pyBOA", 
     "version": "v1.0.0", 
     "upload_type": "software", 
     "publication_date": "2023-07-11", 
