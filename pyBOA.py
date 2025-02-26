@@ -388,5 +388,25 @@ class pyBOA:
 
         return array
 
+    # %% Fast detection
+    def fast_detection(self, rmse_target:int = 0.01):
+        array_copy = self._array.copy()
+        buffer = morphology.binary_dilation(np.isnan(array_copy).squeeze(), footprint=self._buffer_ftprnt)
+        rmse = 1
+        while rmse > rmse_target:
+            res_fltrd = array_copy.pyBOA.mfNinM(return_filter=False)
+            # differences projected vs measures
+            delta_nc = np.subtract(res_fltrd, array_copy)
+            rmse = np.sqrt(
+                np.nansum(delta_nc ** 2) / np.nansum(delta_nc / delta_nc)
+            )
+            nc = res_fltrd.copy()
+        res_sobel = res_fltrd.where(~buffer).pyBOA.sobel_haversine()
+        fronts = res_sobel.pyBOA.front_trsh()
+        fronts_skl = fronts.pyBOA.thinning(f_dilate=True)
+        return xr.Dataset(data_vars = {res_fltrd, res_sobel, fronts, fronts_skl},
+                          coords=array_copy.coords,
+                          dims=array_copy.dims)
+
 
 # %% END
