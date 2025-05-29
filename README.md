@@ -17,8 +17,12 @@ Ben Galuardi, _boaR - R package_ [DOI](https://rdrr.io/github/galuardi/boaR/man/
 Generalized contextual filter, rolling percentile selection, morphological thinning for single lines.
 
 **What to get:**
-The sample netcdf file, the stnd_alone file, and pyBOA.py.
+The sample netcdf file and pyBOA.py.
 
 **Important**
 This works as an extension of the xarray packages and was built under python 3.9
 Currently under liscence GNU General Public License, see [Zenodo](https://zenodo.org/records/8135921). See proper citation and attribution in cff file and zenodo.json.
+Recomended citation: Lhériau-Nice, A. (2023). pyBOA: Contextual front detection (v2.0.0). Zenodo. https://doi.org/10.5281/zenodo.8135921
+
+**Output example**
+<img src='https://github.com/AlxLhrNc/pyBOA/blob/main/pyBOA_results.png'>
