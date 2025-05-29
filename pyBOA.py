@@ -2,9 +2,7 @@
 """
 Created on Fri May 13 11:31:52 2022
 
-@author: AlxLhrNC
-
-This works as an extension of xarray 
+@author: AlxndrLhrNc
 """
 
 # Packages
@@ -22,7 +20,7 @@ types = xr.core.dataset.Dataset, xr.core.dataarray.DataArray
 
 # %% spur removal
 """
-The spur removal section was implemented by Ben Mabey: https://gist.github.com/bmabey, see bwmorph
+The spur removal section was implemented by Ben Mabey: https://gist.github.com/bmabey
 """
 
 LUT_DEL_MASK = np.array([[8, 4, 2], [16, 0, 1], [32, 64, 128]], dtype=np.uint8)
@@ -42,7 +40,7 @@ def _bwmorph_luts(image, luts, n_iter=None, padding=0):
 
     if im.ndim != 2:
         raise ValueError("2D array required")
-    if not np.all(np.in1d(image.flat, (0, 1))):
+    if not np.all(np.isin(image.flat, (0, 1))): # formerly np.all(np.in1d(image.flat, (0, 1)))
         raise ValueError("Image contains values other than 0 and 1")
     # iterate either 1) indefinitely or 2) up to iteration limit
     while n != 0:
@@ -66,18 +64,267 @@ def _bwmorph_luts(image, luts, n_iter=None, padding=0):
     return im.astype(bool)
 
 
-SPUR_LUT = np.array([1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                     0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                     0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=np.bool)
+SPUR_LUT = np.array(
+    [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+    ],
+    dtype=bool,
+)
 
 
 def spur(image, n_iter=None):
@@ -118,35 +365,17 @@ def spur(image, n_iter=None):
 
 
 # %% BOAarray
-def BOAarray(array, dims=None):
-    """
-    Standardize the array type (xarray DataArray/DataSet) and dimensions names.
-
-    Parameters
-    ----------
-    array : numpy/pandas/xarray arrays
-        array to standardize.
-    dims : list, optional
-        List of str to use for the xarray dimensions. The default is ["time", "lat", "lon"].
-
-    Raises
-    ------
-    TypeError
-        As of now, only deal with xarray, pandas, numpy arrays.
-
-    Returns
-    -------
-    array : xarray DataArray (DataSet if input was DataSet)
-        Stardardized array.
-
-    """
+def BOAarray(array, dims: list = ["time", "latitude", "longitude"]):
     if isinstance(array, (xr.core.dataarray.DataArray, xr.core.dataset.Dataset)):
-        if dims is None:
-            dims = ["time", "lat", "lon"]
+        n = 1
+        while len(array.dims) < 3:
+            array = array.expand_dims({f'tmp_{n}': 1})
+            n += 1
         names_dict = {key: value for (key, value) in zip(array.dims, dims)}
         array = array.rename(names_dict)
     elif isinstance(array, np.ndarray):
-        array = np.expand_dims(array.squeeze(), axis=0)
+        while len(array.shape) < 3:
+            array = np.expand_dims(array, 0)
         array = xr.DataArray(array, dims=dims)
     elif isinstance(array, pd.core.frame.DataFrame):
         array = xr.DataArray(array, dims=dims[1:]).expand_dims(dim=dims[0])
@@ -156,10 +385,9 @@ def BOAarray(array, dims=None):
         )
     return array
 
-
 # %% pyBOA class
 
-# This works as an extension of xarray 
+
 @xr.register_dataarray_accessor("pyBOA")
 @xr.register_dataset_accessor("pyBOA")
 class pyBOA:
@@ -179,9 +407,29 @@ class pyBOA:
         None.
 
         """
-        self._array = array
+        self._array = BOAarray(array)
+        self._buffer_ftprnt = morphology.disk(4, dtype=np.float32)
+
+    def __buffer__(self, array):
+        """
+        generate the buffer needed for auto-detection
+
+        Parameters
+        ----------
+        array : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
+        return morphology.binary_dilation(
+            np.isnan(array).squeeze(), footprint=self._buffer_ftprnt)
 
     # %% flag_n
+
     def flag_n(self, n):
         """
         Flags extremas in n*n window
@@ -198,7 +446,7 @@ class pyBOA:
 
         """
         array = self._array
-        window_size = {name: n for name in ["lat", "lon"]}
+        window_size = {name: n for name in ["latitude", "longitude"]}
         window = array.rolling(window_size, center=True)
 
         peak_min = window.min(skipna=True)
@@ -233,15 +481,13 @@ class pyBOA:
             filtered_nc the filtered version of the array.
             to_filter the mask that was filtered.
 
-        WARNING: As per BOA design, works with 2 implementation of flag_n with m = 5 and n = 3.
+        WARNING: As per BOA design, works with 2 implementation of flag_n with m = 5 and n = 3 by default.
         """
         if m <= n:
             raise ValueError(
                 "Large window m:{m} can not be equal or smaller than small window n:{n}"
             )
         array = self._array
-        if len(array.dims) == 2:
-            array = array.expand_dims({"tmp": 1})
         Ninf, Nsup = floor(n / 2), ceil(n / 2)
         peak_M = array.pyBOA.flag_n(m)
         peak_N = array.pyBOA.flag_n(n)
@@ -249,12 +495,10 @@ class pyBOA:
         filtered_nc = array.copy()
         idx = np.where(to_filter)
         for it, ix, iy in zip(*idx):
-            window = array[it, ix - Ninf : ix + Nsup, iy - Ninf : iy + Nsup]
+            window = array[it, ix - Ninf: ix + Nsup, iy - Ninf: iy + Nsup]
             filtered_nc[it, ix, iy] = window.median(skipna=True)
-        if return_filter:
-            return filtered_nc, to_filter
-        else:
-            return filtered_nc
+
+        return (filtered_nc, to_filter) if return_filter else filtered_nc
 
     # %% sobel_haversine
     def sobel_haversine(self):
@@ -268,11 +512,9 @@ class pyBOA:
 
         """
         array = self._array
-        dimensions = array.dims
-        coordinates = array.coords
 
         _, hvrsn = np.meshgrid(
-            array.lon, np.cos(array.lat * pi / 180)
+            array.longitude, np.cos(array.latitude * pi / 180)
         )  # extracting cos(lat) as a matrix
 
         sobel_hzt, sobel_vrt = (
@@ -282,7 +524,8 @@ class pyBOA:
 
         # gradient calculation
         sobel_grd = hvrsn * np.hypot(sobel_hzt, sobel_vrt)
-        sobel_grd = xr.DataArray(sobel_grd, coords=coordinates, dims=dimensions)
+        sobel_grd = xr.DataArray(
+            sobel_grd, coords=array.coords, dims=array.dims)
         return sobel_grd
 
     # %% front_trsh
@@ -305,7 +548,7 @@ class pyBOA:
         """
         array = self._array
         window = array.rolling(
-            {name: wndw for name in ["lat", "lon"]}, center=True, min_periods=1
+            {name: wndw for name in ["latitude", "longitude"]}, center=True, min_periods=1
         )
         window_qt = window.reduce(np.nanpercentile, q=prcnt)
         frnt = self._array > window_qt
@@ -332,32 +575,31 @@ class pyBOA:
 
         """
         array = self._array
-        frnt = array.to_numpy().squeeze()
 
-        if f_dilate:
-            # dilate
-            frnt = morphology.dilation(frnt)
-        for it in range(iteration):
-            # morphological thining
-            frnt = morphology.thin(frnt)
-            # spur removal
-            frnt[frnt > 1] = 1
-            frnt = spur(frnt, n_iter=1)
-            # clean small object
-            frnt = morphology.remove_small_objects(
-                frnt.astype(bool), min_size=min_size, connectivity=2
-            )
-            # remove small holes
-            frnt = morphology.remove_small_holes(frnt)
-            if it < iteration - 1:
+        for t in range(len(array.time)):
+            frnt = array[t, :, :].squeeze()  # make it work with .sel(time=t)
+            if f_dilate:
                 # dilate
                 frnt = morphology.dilation(frnt)
-        frnt = morphology.thin(frnt)
-        if len(array.dims) == 3:
-            frnt = np.expand_dims(frnt, axis=0)
-        frnt = xr.DataArray(frnt, dims=array.dims, coords=array.coords)
+            for it in range(iteration):
+                # morphological thining
+                frnt = morphology.thin(frnt)
+                # spur removal
+                frnt[frnt > 1] = 1
+                frnt = spur(frnt, n_iter=1)
+                # clean small object
+                frnt = morphology.remove_small_objects(
+                    frnt.astype(bool), min_size=min_size, connectivity=2
+                )
+                # remove small holes
+                frnt = morphology.remove_small_holes(frnt)
+                if it < iteration - 1:
+                    # dilate
+                    frnt = morphology.dilation(frnt)
+            frnt = morphology.thin(frnt)
+            array[t, :, :] = frnt  # .sel(time=t)
 
-        return frnt
+        return array
 
     # %% roll_conf_int
     def roll_conf_int(self, wndw=64, ci=0.75):
@@ -379,7 +621,7 @@ class pyBOA:
         """
         array = self._array.where(np.isfinite(self._array.values))
         window = array.rolling(
-            {name: wndw for name in ["lat", "lon"]}, center=True, min_periods=1
+            {name: wndw for name in ["latitude", "longitude"]}, center=True, min_periods=1
         )
         mean_ = window.reduce(np.nanmean)
         sd_ = window.reduce(np.nanstd)
@@ -388,25 +630,148 @@ class pyBOA:
 
         return array
 
-    # %% Fast detection
-    def fast_detection(self, rmse_target:int = 0.01):
-        array_copy = self._array.copy()
-        buffer = morphology.binary_dilation(np.isnan(array_copy).squeeze(), footprint=self._buffer_ftprnt)
-        rmse = 1
-        while rmse > rmse_target:
-            res_fltrd = array_copy.pyBOA.mfNinM(return_filter=False)
-            # differences projected vs measures
-            delta_nc = np.subtract(res_fltrd, array_copy)
-            rmse = np.sqrt(
-                np.nansum(delta_nc ** 2) / np.nansum(delta_nc / delta_nc)
-            )
-            nc = res_fltrd.copy()
-        res_sobel = res_fltrd.where(~buffer).pyBOA.sobel_haversine()
-        fronts = res_sobel.pyBOA.front_trsh()
-        fronts_skl = fronts.pyBOA.thinning(f_dilate=True)
-        return xr.Dataset(data_vars = {res_fltrd, res_sobel, fronts, fronts_skl},
-                          coords=array_copy.coords,
-                          dims=array_copy.dims)
+    # %% roll_percent
+    def roll_percent(self, wndw=64, prcnt=75):
+        """
+        rolling confidence interval
+
+        Parameters
+        ----------
+        wndw : int, optional
+            Window size. The default is 64.
+        ci : float, optional
+            confidence interval within [0,100]. The default is 75.
+
+        Returns
+        -------
+        array : xarray DataArray/DataSet
+            array with values out of the confidence interval
+
+        """
+        array = self._array.where(np.isfinite(self._array.values))
+        window = array.rolling(
+            {name: wndw for name in ["latitude", "longitude"]}, center=True, min_periods=1
+        )
+        qs = [(100 - prcnt) / 2, 100 - (100 - prcnt) / 2]
+        vmin, vmax = (
+            window.reduce(np.nanpercentile, q=qs[0]),
+            window.reduce(np.nanpercentile, q=qs[1]),
+        )
+        array = array.where((array < vmin) | (array > vmax))
+
+        return array
+
+    # %% auto_detection
+    def auto_detection(self, rmse_target: float = 0.01):
+        if isinstance(self._array, xr.core.dataarray.DataArray):
+            self._array = self._array.to_dataset()
+        for v in self._array.data_vars:
+            rmse = 1
+            array_copy = self._array[v].copy()
+            while rmse > rmse_target:
+                res_fltrd = array_copy.pyBOA.mfNinM(return_filter=False)
+                # differences projected vs measures
+                delta_nc = np.subtract(res_fltrd, array_copy)
+                rmse = np.sqrt(
+                    np.nansum(delta_nc ** 2) / np.nansum(delta_nc / delta_nc)
+                )
+                array_copy = res_fltrd.copy()
+            res_sobel = res_fltrd.where(~self.__buffer__(
+                self._array[v])).pyBOA.sobel_haversine()
+            res_frnt = res_sobel.pyBOA.front_trsh().pyBOA.thinning(f_dilate=True)
+
+            array_copy[f"{v}_filtered"] = (array_copy.dims, res_fltrd.data)
+            array_copy[f"{v}_sobel"] = (array_copy.dims, res_sobel.data)
+            array_copy[f"{v}_fronts"] = (
+                array_copy.dims, res_frnt.where(res_frnt > 0).data)
+
+        return array_copy
 
 
-# %% END
+# %% __main__
+if __name__ == "__main__":
+    import os
+    from cartopy import crs as ccrs, feature as cfeature
+    from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+    from matplotlib import pyplot as plt, ticker as mticker
+    from matplotlib.colors import LogNorm
+    from warnings import simplefilter
+    from numpy import array
+
+    simplefilter("ignore", category=RuntimeWarning) # avoid RuntimeWarning: invalid value encountered in log and all NaN slices
+    print(f"\nRunning {os.path.basename(__file__)} ...")
+    PATH_ROOT = os.path.dirname(os.path.abspath(__file__))
+    # Downloading fresh file from Copernicus ############################################################
+    minimum_latitude, maximum_latitude, minimum_longitude, maximum_longitude = -37.24822666266156, -35.664520, 174.4191057667842, 176.18599269342826
+    projection = ccrs.PlateCarree(central_longitude=180)
+    nc_file = os.path.join(PATH_ROOT, "chl_l3_rep_300m_2022_03_15.nc")
+    
+    # pyBOA ############################################################
+    ds = xr.open_dataset(nc_file)
+    boa = ds["CHL"].pyBOA.auto_detection()
+    print("Test passed on dataarray.")
+    # boa2 = ds.pyBOA.auto_detection()
+    # print("Test passed on dataset.")
+    
+    # Visuals ############################################################
+    # Base
+    [minimum_longitude, minimum_latitude, _], [maximum_longitude, maximum_latitude, _] = projection.transform_points(
+        ccrs.PlateCarree(), 
+        array([minimum_longitude, maximum_longitude]), 
+        array([minimum_latitude, maximum_latitude])
+        )
+    fig, mppng = plt.subplots(subplot_kw=dict(projection=projection))
+    mppng.set_extent([minimum_longitude, maximum_longitude, minimum_latitude, maximum_latitude], crs=projection)
+    mppng.add_feature(
+            cfeature.GSHHSFeature(scale="auto"),
+            facecolor="lightgray",
+            edgecolor="black",
+            linewidth=0.5,
+            zorder=10,
+        )
+    grd = mppng.gridlines(
+            crs=ccrs.PlateCarree(),
+            draw_labels=True,
+            linewidth=1,
+            color="black",
+            alpha=0.5,
+            linestyle="dotted",
+            zorder=20,
+        )
+    grd.top_labels = False
+    grd.right_labels = False
+    grd.xformatter = LONGITUDE_FORMATTER
+    grd.yformatter = LATITUDE_FORMATTER
+    grd.xlocator = mticker.MultipleLocator(0.5)
+    grd.ylocator = mticker.MultipleLocator(0.5)
+    
+    raster_1 = mppng.pcolormesh(boa.longitude,
+                              boa.latitude,
+                              boa.squeeze(),
+                              cmap="viridis",
+                              norm=LogNorm(vmin=np.exp(-1), vmax=np.exp(1)),
+                              transform=ccrs.PlateCarree(),
+                              )
+    clrbr = fig.colorbar(
+        raster_1, ax=mppng, aspect=30, pad=0.02, shrink=0.6
+    )  # pad=distance to figure
+    clrbr.set_label("Chlorophyll concentration [mg.m-3]", fontsize=9)
+    clrbr.set_ticks([0.4, 0.6, 1, 2])
+    clrbr.set_ticklabels([0.4, 0.6, 1, 2])
+    mppng.pcolormesh(
+        boa.longitude,
+        boa.latitude,
+        boa["CHL_fronts"].squeeze(),
+        cmap="Reds",
+        vmin=0,
+        vmax=1.3,
+        transform=ccrs.PlateCarree(),
+    )
+    fig.savefig(
+        os.path.join(PATH_ROOT, "pyBOA_results.png"),
+        dpi=300,
+        bbox_inches="tight",
+        pad_inches=0.1,
+    )
+    # END ############################################################
+    print(f"\nEnd of the program {os.path.basename(__file__)}", "\a")
