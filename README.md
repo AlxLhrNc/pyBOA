@@ -22,7 +22,7 @@ The sample netcdf file and pyBOA.py.
 **Important**
 This works as an extension of the xarray packages and was built under python 3.9
 Currently under liscence GNU General Public License, see [Zenodo](https://zenodo.org/records/8135921). See proper citation and attribution in cff file and zenodo.json.
-Recomended citation: Lhériau-Nice, A. (2023). pyBOA: Contextual front detection (v2.0.0). Zenodo. https://doi.org/10.5281/zenodo.8135921
+Recomended citation: Alexandre Lhériau-Nice. (2025). pyBOA (v2.0.0). Zenodo. https://doi.org/10.5281/zenodo.15540884
 
 **Output example**
 <img src='https://github.com/AlxLhrNc/pyBOA/blob/main/pyBOA_results.png'>
