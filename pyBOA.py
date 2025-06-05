@@ -27,6 +27,19 @@ LUT_DEL_MASK = np.array([[8, 4, 2], [16, 0, 1], [32, 64, 128]], dtype=np.uint8)
 
 
 def _bwmorph_luts(image, luts, n_iter=None, padding=0):
+    """
+    Perform binary morphological operations on an image using lookup tables (LUTs).
+    
+    Args:
+        image (2D array-like): The binary image to be processed.
+        luts (list of 1D arrays): List of lookup tables for deletion decisions.
+        n_iter (int, optional): Number of iterations to perform. If None, iterates indefinitely.
+        padding (int, optional): Padding value for the correlation operation.
+    Returns:
+        ndarray: The processed binary image after applying the morphological operations.
+    Raises:
+        ValueError: If n_iter is not positive or if the image is not a 2D binary array.
+    """
     # check parameters
     if n_iter is None:
         n = -1
