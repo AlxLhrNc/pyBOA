@@ -331,21 +331,17 @@ def spur(image, n_iter=None):
     """
     Removes "spurs" from an image
 
-    Parameters
-    ----------
-    image : binary (M, N) ndarray
-        The image to be spurred.
+    Args:
+        image (binary M*N ndarray): the image to be spurred.
 
-    n_iter : int, number of iterations, optional
-        Regardless of the value of this parameter, the de-spurred image
-        is returned immediately if an iteration produces no change.
-        If this parameter is specified it thus sets an upper bound on
-        the number of iterations performed.
+        n_iter (int, number of iterations, optional):
+            Regardless of the value of this parameter, the de-spurred image
+            is returned immediately if an iteration produces no change.
+            If this parameter is specified it thus sets an upper bound on
+            the number of iterations performed.
 
-    Returns
-    -------
-    out : ndarray of bools
-        de-spurred image.
+    Returns:
+        out (ndarray of bools) : de-spurred image.
 
 
     Examples
@@ -366,6 +362,19 @@ def spur(image, n_iter=None):
 
 # %% BOAarray
 def BOAarray(array, dims: list = ["time", "latitude", "longitude"]):
+    """
+    Converts the input array to a 3D xarray.DataArray with specified dimensions.
+    If the input is already a 3D xarray.DataArray or Dataset, it will ensure that
+    the dimensions are named according to the provided list.
+    
+    Args:
+        array (Union[xr.DataArray, xr.Dataset, np.ndarray, pd.DataFrame]): The input array to be converted.
+        dims (list): A list of dimension names to be applied to the resulting DataArray.
+    Returns:
+        xr.DataArray: A 3D xarray.DataArray with the specified dimensions.
+    Raises:
+        TypeError: If the input array is not of a supported type (xarray, numpy, or pandas).
+    """
     if isinstance(array, (xr.core.dataarray.DataArray, xr.core.dataset.Dataset)):
         n = 1
         while len(array.dims) < 3:
@@ -391,60 +400,54 @@ def BOAarray(array, dims: list = ["time", "latitude", "longitude"]):
 @xr.register_dataarray_accessor("pyBOA")
 @xr.register_dataset_accessor("pyBOA")
 class pyBOA:
+    """
+    pyBOA class for processing and analyzing oceanographic data.
+    This class provides methods for flagging peaks, applying morphological operations,
+    calculating Sobel gradients, thresholding fronts, thinning data, rolling confidence intervals,
+    rolling percentiles, and automatic detection of features in oceanographic datasets.
+    
+    Attributes:
+        _array (xr.DataArray): The input data array to be processed.
+        _buffer_ftprnt (np.ndarray): Footprint for binary dilation, used in buffering operations.
+    
+    Use as follows:
+    >>> array.pyBOA.auto_detection(rmse_target=0.01)
+    """
     def __init__(self, array):
         """
-        xarray accessor for pyBOA.
-        Use as:
-            xarray.DataArray.pyBOA()
-
-        Parameters
-        ----------
-        array : xarray DataArray / DataSet
-            xarray DataArray / DataSet. Use BOAarray function if unsure.
-
-        Returns
-        -------
-        None.
-
+        Initializes the pyBOA class with a given data array.
+        
+        Args:
+            array (Union[xr.DataArray, xr.Dataset, np.ndarray, pd.DataFrame]): The input data array to be processed.
+        Raises:
+            TypeError: If the input array is not of a supported type (xarray, numpy, or pandas).
         """
         self._array = BOAarray(array)
         self._buffer_ftprnt = morphology.disk(4, dtype=np.float32)
 
     def __buffer__(self, array):
         """
-        generate the buffer needed for auto-detection
-
-        Parameters
-        ----------
-        array : TYPE
-            DESCRIPTION.
-
-        Returns
-        -------
-        TYPE
-            DESCRIPTION.
-
+        Creates a buffer around NaN values in the input array using binary dilation.
+        Args:
+            array (xr.DataArray): The input data array.
+        Returns:
+            np.ndarray: A boolean array where True indicates a buffer around NaN values.
         """
         return morphology.binary_dilation(
             np.isnan(array).squeeze(), footprint=self._buffer_ftprnt)
 
     # %% flag_n
-
+    """
+    Flags peaks in the input array based on a rolling window of size n.
+    
+    Args:
+        n (int): The size of the rolling window to be used for flagging peaks.
+    Returns:
+        np.ndarray: A boolean array where True indicates a peak in the input array.
+    Raises:
+        ValueError: If n is less than or equal to 0.
+    """
     def flag_n(self, n):
-        """
-        Flags extremas in n*n window
-
-        Parameters
-        ----------
-        n : int
-            Size of the window.
-
-        Returns
-        -------
-        flag : xarray DataArray/DataSet
-            Boolean array with extremas as TRUE.
-
-        """
         array = self._array
         window_size = {name: n for name in ["latitude", "longitude"]}
         window = array.rolling(window_size, center=True)
@@ -459,29 +462,16 @@ class pyBOA:
     # %% mfMinN
     def mfNinM(self, m=5, n=3, return_filter=False):
         """
-        Contextual Median Filtering
-
-        Parameters
-        ----------
-        m : int, optional
-            Size of the big window. The default is 5.
-        n : int, optional
-            Size of the small window. The default is 3.
-        return_filter : bool, optional
-            Do you want the filter to be returned by the function. The default is False.
-
-        Raises
-        ------
-        ValueError
-            `m` being the size of the big window, it should always be smaller than `n` .
-
-        Returns
-        -------
-        xarray DataArray/DataSet (both)
-            filtered_nc the filtered version of the array.
-            to_filter the mask that was filtered.
-
-        WARNING: As per BOA design, works with 2 implementation of flag_n with m = 5 and n = 3 by default.
+        Applies a median filter to the input array using a large window size m and a small window size n.
+        
+        Args:
+            m (int): The size of the large rolling window.
+            n (int): The size of the small rolling window.
+            return_filter (bool): If True, returns a tuple containing the filtered array and the filter mask.
+        Returns:
+            xr.DataArray or tuple: The filtered array, or a tuple containing the filtered array and the filter mask if return_filter is True.
+        Raises:
+            ValueError: If m is less than or equal to n.
         """
         if m <= n:
             raise ValueError(
@@ -503,13 +493,12 @@ class pyBOA:
     # %% sobel_haversine
     def sobel_haversine(self):
         """
-        Adjusted version of the sobel gradient to take into account the distance distortion.
-
-        Returns
-        -------
-        sobel_grd : xarray DataArray/DataSet
-            The sobel gradient adjusted with the haversine formula.
-
+        Calculates the Sobel gradient of the input array using the haversine formula.
+        The Sobel operator is applied to the array to compute the gradient in both horizontal and vertical directions,
+        and the haversine formula is used to account for the curvature of the Earth.
+        
+        Returns:
+            xr.DataArray: A DataArray containing the Sobel gradient of the input array.
         """
         array = self._array
 
@@ -531,20 +520,13 @@ class pyBOA:
     # %% front_trsh
     def front_trsh(self, wndw=64, prcnt=90):
         """
-        Fronts thresholding using percentile.
-
-        Parameters
-        ----------
-        wndw : int, optional
-            Window size. The default is 64.
-        prcnt : int, optional
-            Percentile. The default is 90.
-
-        Returns
-        -------
-        frnt : xarray DataArray/DataSet
-            Boolean array TRUE where the values are above the chosen percentile.
-
+        Thresholds the fronts in the input array based on a rolling window and a specified percentile.
+        
+        Args:
+            wndw (int): The size of the rolling window to be used for thresholding.
+            prcnt (int): The percentile value to be used for thresholding.
+        Returns:
+            xr.DataArray: A DataArray containing the thresholded fronts.
         """
         array = self._array
         window = array.rolling(
@@ -557,22 +539,14 @@ class pyBOA:
     # %% thinning
     def thinning(self, iteration=2, min_size=7, f_dilate=False):
         """
-        Used on the output from `pyBOA.front_trsh()` to obtain single lines.
+        Applies morphological thinning to the input array.
 
-        Parameters
-        ----------
-        iteration : int, optional
-            Number of cleaning loop to execute. The default is 2.
-        min_size : int, optional
-            Minimal size of the structures to remove. The default is 7.
-        f_dilate : bool, optional
-            Should the function make a first dilation before cleaning loops. The default is False.
-
-        Returns
-        -------
-        frnt : xarray DataArray/DataSet
-            Boolean array TRUE where a front was detected.
-
+        Args:
+            iteration (int): The number of iterations for morphological thinning.
+            min_size (int): The minimum size of objects to be retained after thinning.
+            f_dilate (bool): If True, applies dilation before thinning.
+        Returns:
+            xr.DataArray: A DataArray containing the thinned fronts.
         """
         array = self._array
 
@@ -604,20 +578,13 @@ class pyBOA:
     # %% roll_conf_int
     def roll_conf_int(self, wndw=64, ci=0.75):
         """
-        rolling confidence interval
-
-        Parameters
-        ----------
-        wndw : int, optional
-            Window size. The default is 64.
-        ci : float, optional
-            confidence interval within [0,1]. The default is 0.75.
-
-        Returns
-        -------
-        array : xarray DataArray/DataSet
-            array with values out of the confidence interval
-
+        Calculates the rolling confidence interval for the input array.
+        
+        Args:
+            wndw (int): The size of the rolling window to be used for calculating the confidence interval.
+            ci (float): The confidence interval to be used for thresholding.
+        Returns:
+            xr.DataArray: A DataArray containing the values outside the confidence interval.
         """
         array = self._array.where(np.isfinite(self._array.values))
         window = array.rolling(
@@ -633,20 +600,13 @@ class pyBOA:
     # %% roll_percent
     def roll_percent(self, wndw=64, prcnt=75):
         """
-        rolling confidence interval
-
-        Parameters
-        ----------
-        wndw : int, optional
-            Window size. The default is 64.
-        ci : float, optional
-            confidence interval within [0,100]. The default is 75.
-
-        Returns
-        -------
-        array : xarray DataArray/DataSet
-            array with values out of the confidence interval
-
+        Calculates the rolling percentiles for the input array.
+        
+        Args:
+            wndw (int): The size of the rolling window to be used for calculating percentiles.
+            prcnt (int): The percentile value to be used for thresholding.
+        Returns:
+            xr.DataArray: A DataArray containing the values outside the specified percentiles.
         """
         array = self._array.where(np.isfinite(self._array.values))
         window = array.rolling(
@@ -663,6 +623,17 @@ class pyBOA:
 
     # %% auto_detection
     def auto_detection(self, rmse_target: float = 0.01):
+        """
+        Automatically detects features in the input array by applying a median filter,
+        calculating Sobel gradients, thresholding fronts, and thinning the data.
+        
+        Args:
+            rmse_target (float): The target root mean square error for the median filter.
+        Returns:
+            xr.DataArray: A DataArray containing the filtered, Sobel, and front-detected data.
+        Raises:
+            ValueError: If rmse_target is less than or equal to 0.
+        """
         if isinstance(self._array, xr.core.dataarray.DataArray):
             self._array = self._array.to_dataset()
         for v in self._array.data_vars:
@@ -686,7 +657,6 @@ class pyBOA:
                 array_copy.dims, res_frnt.where(res_frnt > 0).data)
 
         return array_copy
-
 
 # %% __main__
 if __name__ == "__main__":
